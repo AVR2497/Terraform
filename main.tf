@@ -21,6 +21,6 @@ provider "aws" {
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-0c55b141545c95a79" # AMI ficticia
+  ami           = "ami-0c55b141545c95a79" # A
   instance_type = "t2.small"
 }
