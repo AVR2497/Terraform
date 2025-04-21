@@ -1,0 +1,71 @@
+name: Terraform Deploy to LocalStack
+
+on:
+  push:
+    branches:
+      - main # O la rama principal de tu repositorio (master, develop, etc.)
+  # Puedes añadir pull_request si quieres que también se haga plan en PRs
+  # pull_request:
+  #   branches:
+  #     - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # --- Configuración del servicio LocalStack ---
+    services:
+      localstack:
+        image: localstack/localstack:latest # O una versión específica si prefieres
+        ports:
+          - "4566:4566" # Mapea el puerto por defecto de LocalStack
+        # Configura variables de entorno si es necesario para LocalStack
+        env:
+          # Especifica los servicios que necesitas para un inicio más rápido
+          SERVICES: s3,sqs,lambda # Ajusta según tus recursos Terraform
+          DEBUG: 1 # Opcional: para ver logs detallados de LocalStack
+        # Opcional: Healthcheck para asegurar que LocalStack está listo
+        options: >-
+          --health-cmd "curl http://localhost:4566/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Acción para descargar tu código
+
+      - name: Setup Terraform
+        # Usa la acción oficial de HashiCorp para configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.x.x # O la versión que uses
+
+      # --- Esperar a que LocalStack esté listo (puede ser necesario) ---
+      # Aunque el healthcheck ayuda, a veces un pequeño retardo es útil
+      - name: Wait for LocalStack to be ready
+        # La forma más robusta sería un script que consulte /health hasta que esté OK
+        # Pero un simple sleep a menudo funciona para ejemplos básicos
+        run: |
+          echo "Waiting for LocalStack..."
+          sleep 15 # Ajusta si necesitas más tiempo
+
+      # --- Ejecutar comandos de Terraform ---
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan
+
+      - name: Terraform Apply
+        id: apply
+        # Usa -auto-approve para aplicar automáticamente en CI
+        run: terraform apply -auto-approve
+
+      # Opcional: Limpiar recursos de LocalStack después del apply si es un test
+      # - name: Terraform Destroy (Optional - for testing cleanup)
+      #   if: always() # Ejecutar siempre, incluso si apply falla, para intentar limpiar
+      #   run: terraform destroy -auto-approve
