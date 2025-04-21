@@ -22,7 +22,7 @@ jobs:
         # Configura variables de entorno si es necesario para LocalStack
         env:
           # Especifica los servicios que necesitas para un inicio más rápido
-          SERVICES: s3,sqs,lambda # Ajusta según tus recursos Terraform
+          SERVICES: s3,sqs,lambda,ec2 # Ajusta según tus recursos Terraform
           DEBUG: 1 # Opcional: para ver logs detallados de LocalStack
         # Opcional: Healthcheck para asegurar que LocalStack está listo
         options: >-
