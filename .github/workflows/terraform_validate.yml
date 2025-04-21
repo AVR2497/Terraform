@@ -1,0 +1,39 @@
+name: Terraform Validation
+
+on:
+  push:
+    branches:
+      - main # O la rama principal de tu repositorio (master, develop, etc.)
+  pull_request:
+    branches:
+      - main # O la rama principal
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Acción para descargar tu código
+
+      - name: Setup Terraform
+        # Usa la acción oficial de HashiCorp para configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          # Especifica la versión de Terraform que quieres usar
+          # Puedes usar 'latest' o una versión específica como '1.7.0'
+          terraform_version: 1.x.x # O la versión que uses
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+
+      # Opcional: Si quieres correr fmt para verificar formato
+      # - name: Terraform Format Check
+      #   id: fmt
+      #   run: terraform fmt -check -recursive
+      #   continue-on-error: true # Permite que la validación continúe aunque el formato falle
